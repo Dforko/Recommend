@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from pydantic import BaseModel
 from fastapi import FastAPI
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
 
 app = FastAPI()
@@ -97,7 +99,11 @@ def get_director(nombre_director):
     director_db = db[(db['director'] == nombre_director)]
     suma_retorno = director_db['return'].sum()
     # Crear un DataFrame con las columnas especificadas
-    resultado = str(director_db[['title', 'release_year', 'return', 'budget', 'revenue']])
+    resultado = director_db[['title', 'release_year', 'return', 'budget', 'revenue']]
+    # Renombrar las columnas del DataFrame
+    resultado = resultado.rename(columns={'title': 'Título', 'release_year': 'Año', 'return': 'Retorno', 'budget': 'Costo', 'revenue': 'Ganancia'})
+    # Ordenar el DataFrame por la columna 'Año' en orden ascendente
+    resultado = resultado.sort_values(by='Año', ascending=True)
     # Devolver la suma de retorno y el DataFrame resultado
     return {'El retorno total de': nombre_director,
             'es de' : round(suma_retorno, 2),
