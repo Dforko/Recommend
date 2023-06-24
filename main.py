@@ -97,10 +97,10 @@ def score_titulo(titulo_de_la_filmacion: str):
 @app.get('/get_director/{nombre_director}')
 def get_director( nombre_director ):
     director_db = db[(db['cast'].str.contains(nombre_director))]
-    suma_retorno =round(director_db['return'].sum(),2)
     resultado = director_db[['title', 'release_year', 'return', 'budget', 'revenue']]
+    director_db[['release_year', 'budget', 'revenue']] = director_db[['release_year', 'budget', 'revenue']].astype(int)
+    suma_retorno =round(director_db['return'].sum(),2)
     resultado = resultado.sort_values(by='release_year', ascending=True)
-
     if  nombre_director not in director_db.values:
         return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
     return {'El retorno total de': nombre_director,
