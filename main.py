@@ -3,8 +3,8 @@ import pandas as pd
 import numpy as np
 from pydantic import BaseModel
 from fastapi import FastAPI
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer 
+from sklearn.neighbors import NearestNeighbors
 
 
 app = FastAPI()
