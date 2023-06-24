@@ -105,9 +105,9 @@ def get_director( nombre_director ):
     resultado = resultado.sort_values(by='release_year', ascending=True)
     if  nombre_director not in director_db.values:
         return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
-    return (f"{'El retorno total de': nombre_director,
+    return {'El retorno total de': nombre_director,
             'es de' : round(suma_retorno, 2),
-            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado})
+            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado.astype(str)}
 
 # RECOMMENDATION FUNCTION 
 
