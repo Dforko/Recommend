@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
 app = FastAPI()
 
-db = pd.read_parquet('dbOK_small.snappy.parquet', engine='pyarrow')
+db = pd.read_parquet('dbSm.parquet', engine='pyarrow')
 
 @app.get("/")
 def read_root():
