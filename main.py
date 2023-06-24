@@ -113,6 +113,7 @@ def get_director(nombre_director):
 
 # RECOMMENDATION FUNCTION 
 
+db = dbSm
 dbSm['description'] = dbSm['title'] + dbSm['overview'] + dbSm['tagline']
 
 cv = CountVectorizer(stop_words='english', max_features=5000)
