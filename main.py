@@ -108,7 +108,7 @@ def get_director( nombre_director ):
         return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
     return {'El retorno total de': nombre_director,
             'es de' : round(suma_retorno, 2),
-            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado.astype(str)}
+            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado.astype(str).to_list()}
 
 
 
@@ -117,6 +117,11 @@ def get_director( nombre_director ):
 
 dbSm=db
 dbSm['description'] = db['title'] + db['overview'] + db['tagline']
+
+# Aseguramos que en los datos de las columnas title, overview y tagline no haya valores NaN y sean strings
+dbSm['title'] = dbSm['title'].fillna('').astype('str')
+dbSm['overview'] = dbSm['overview'].fillna('').astype('str')
+dbSm['tagline'] = dbSm['tagline'].fillna('').astype('str')
 
 cv = CountVectorizer(stop_words='english', max_features=5000)
 count_matrix = cv.fit_transform(dbSm['description'])
