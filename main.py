@@ -95,19 +95,14 @@ def score_titulo(titulo_de_la_filmacion: str):
     }
 
 @app.get('/get_director/{nombre_director}')
-def get_director(nombre_director):
-    director_db = db[(db['director'] == nombre_director)]
-    suma_retorno = director_db['return'].sum()
-    # Crear un DataFrame con las columnas especificadas
+def get_director( nombre_director ):
+    director_db = db[(db['cast'].str.contains(nombre_director))]
+    suma_retorno =round(director_db['return'].sum(),2)
     resultado = director_db[['title', 'release_year', 'return', 'budget', 'revenue']]
-     # Change the data type of specific columns to int
-    resultado[['release_year', 'budget', 'revenue']] = resultado[['release_year', 'budget', 'revenue']].astype(int)
-    # Renombrar las columnas del DataFrame
-    resultado = resultado.rename(columns={'title': 'Título', 'release_year': 'Año', 'return': 'Retorno', 'budget': 'Costo', 'revenue': 'Ganancia'})
-    # Ordenar el DataFrame por la columna 'Año' en orden ascendente
-    resultado = resultado.sort_values(by='Año', ascending=True)
-   
-    # Devolver la suma de retorno y el DataFrame resultado
+    resultado = resultado.sort_values(by='release_year', ascending=True)
+
+    if  nombre_director not in director_db.values:
+        return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
     return {'El retorno total de': nombre_director,
             'es de' : round(suma_retorno, 2),
             'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado}
