@@ -7,7 +7,7 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-db = pd.read_csv('dbOK_small.csv')
+db = pd.read_parquet('dbOK_small.snappy.parquet', engine='pyarrow')
 
 @app.get("/")
 def read_root():
