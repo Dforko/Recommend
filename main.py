@@ -113,24 +113,36 @@ def get_director(nombre_director):
 
 # RECOMMENDATION FUNCTION 
 
-dbSm=db
 dbSm['description'] = dbSm['title'] + dbSm['overview'] + dbSm['tagline']
-tf = TfidfVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english')
-tfidf_matrix = tf.fit_transform(dbSm['description'])
-cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+cv = CountVectorizer(stop_words='english', max_features=5000)
+count_matrix = cv.fit_transform(dbSm['description'])
+
+nn = NearestNeighbors(metric='cosine', algorithm='brute')
+nn.fit(count_matrix)
+
+
 smd = dbSm.reset_index()
 titles = smd['title']
+
 indices = pd.Series(smd.index, index=smd['title'])
 
 
 @app.get('/get_recommendations/{title}')
 def get_recommendations(title:str):
-    if  title not in titles.values:
-        print(f"{title} no es un título válido. Chequea que el título sea el correcto, la ortografía y mayúsculas.")
-        return 
-    idx = indices[title].min()
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:11]
-    movie_indices = [i[0] for i in sim_scores]
-    return {'Películas recomendadas':titles.iloc[movie_indices]}
+       
+    # Verificamos si el titulo ingresado se encuentra en el df
+    if title not in dbSm['title'].values:
+        return 'La pelicula no se encuentra en el conjunto de la base de datos.'
+    else:
+        # Obtenemos el índice de la película que coincide con el título
+        index = indices[dbSm.title]
+
+        # Obtenemos las puntuaciones de similitud de las 5 peliculas más cercanas
+        distances, indices_knn = nn.kneighbors(count_matrix[index], n_neighbors=6)  
+
+        # Obtenemos los indices de las peliculas
+        movie_indices = indices_knn[0][1:]  
+
+        # Devolvemos las 5 peliculas mas similares
+        return {'lista recomendada': dbSm['title'].iloc[movie_indices].tolist()}
