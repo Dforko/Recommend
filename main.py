@@ -108,7 +108,7 @@ def get_director( nombre_director ):
         return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
     return {'El retorno total de': nombre_director,
             'es de' : round(suma_retorno, 2),
-            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado.astype(str).to_list()}
+            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado.to_list()}
 
 
 
