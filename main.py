@@ -97,7 +97,7 @@ def get_director(nombre_director):
     director_db = db[(db['director'] == nombre_director)]
     suma_retorno = director_db['return'].sum()
     # Crear un DataFrame con las columnas especificadas
-    resultado = director_db[['title', 'release_year', 'return', 'budget', 'revenue']]
+    resultado = str(director_db[['title', 'release_year', 'return', 'budget', 'revenue']])
     # Devolver la suma de retorno y el DataFrame resultado
     return {'El retorno total de': nombre_director,
             'es de' : round(suma_retorno, 2),
