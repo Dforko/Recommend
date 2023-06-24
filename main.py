@@ -17,17 +17,7 @@ def read_root():
 
 
 
-@app.get('/get_actor/{nombre_actor}')
-def get_actor( nombre_actor ):
-    actor_info = db[(db['cast'].str.contains(nombre_actor))]
-    actor_cant_movies=actor_info['cast'].shape[0]
-    actor_return =round(actor_info['return'].sum(),2)
-    if  nombre_actor not in actor_info.values:
-        return(f"{nombre_actor} no es un nombre válido. Chequea la ortografía y mayúsculas.")
-    return {'El actor/la actriz': nombre_actor, 
-            'ha participado de ':actor_cant_movies,
-            'conseguiendo un retorno de': actor_return,
-            'con un promedio por filmación de':round(actor_return/actor_cant_movies,2)}
+
 
 @app.get('/cantidad_filmaciones_dia/{Dia}')
 def cantidad_filmaciones_dia(Dia:str):
@@ -93,24 +83,36 @@ def score_titulo(titulo_de_la_filmacion: str):
         'fue estrenada en el año': str(movie_info.release_year.values[0]),
         'con un score/popularidad de': str(movie_info.popularity.values[0])
     }
-
+    
+@app.get('/get_actor/{nombre_actor}')
+def get_actor( nombre_actor ):
+    actor_info = db[(db['cast'].str.contains(nombre_actor))]
+    actor_cant_movies=actor_info['cast'].shape[0]
+    actor_return =round(actor_info['return'].sum(),2)
+    if  nombre_actor not in actor_info.values:
+        return(f"{nombre_actor} no es un nombre válido. Chequea la ortografía y mayúsculas.")
+    return {'El actor/la actriz': nombre_actor, 
+            'ha participado de ':actor_cant_movies,
+            'conseguiendo un retorno de': actor_return,
+            'con un promedio por filmación de':round(actor_return/actor_cant_movies,2)}
+    
 @app.get('/get_director/{nombre_director}')
 def get_director( nombre_director ):
-    director_db = db[(db['cast'].str.contains(nombre_director))]
+    director_db = db[(db['director'].str.contains(nombre_director))]
     resultado = director_db[['title', 'release_year', 'return', 'budget', 'revenue']]
     director_db[['release_year', 'budget', 'revenue']] = director_db[['release_year', 'budget', 'revenue']].astype(int)
     suma_retorno =round(director_db['return'].sum(),2)
     resultado = resultado.sort_values(by='release_year', ascending=True)
     if  nombre_director not in director_db.values:
         return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
-    return {'El retorno total de': nombre_director,
+    return (f"{'El retorno total de': nombre_director,
             'es de' : round(suma_retorno, 2),
-            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado}
+            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado})
 
 # RECOMMENDATION FUNCTION 
 
 
-dbSm=db.copy()
+dbSm=db
 dbSm['description'] = db['title'] + db['overview'] + db['tagline']
 
 cv = CountVectorizer(stop_words='english', max_features=5000)
