@@ -13,29 +13,12 @@ db = pd.read_parquet('dbOK_small.snappy.parquet', engine='pyarrow')
 def read_root():
     return {"Moviex": "Movie Recommendation System: What do you want to watch today?"}
 
-@app.get('/get_director/{nombre_director}')
-def get_director(nombre_director):
-    # Filtrar las filas que corresponden al director especificado
-    director_db = db[db['director'] == nombre_director]
-    if nombre_director not in db['director'].values:
-        return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
-    # Calcular la suma de la columna 'Retorno'
-    suma_retorno = director_db['return'].sum()
-    # Crear un DataFrame con las columnas especificadas
-    resultado = director_db[['title', 'release_year', 'return', 'budget', 'revenue']]
-    # Renombrar las columnas del DataFrame
-    resultado = resultado.rename(columns={'title': 'Título', 'release_year': 'Año', 'return': 'Retorno', 'budget': 'Costo', 'revenue': 'Ganancia'})
-    # Ordenar el DataFrame por la columna 'Año' en orden ascendente
-    resultado = resultado.sort_values(by='Año', ascending=True)
-    # Devolver la suma de retorno y el DataFrame resultado
-    return {'El retorno total de': nombre_director,
-            'es de' : round(suma_retorno, 2),
-            'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado}
+
 
 @app.get('/get_actor/{nombre_actor}')
 def get_actor( nombre_actor ):
-    actor_info = db.loc[db['cast'].str.contains(nombre_actor)]
-    actor_cant_movies=actor_info['cast'].count()
+    actor_info = db[db['cast'].str.contains(nombre_actor)]
+    actor_cant_movies=str(actor_info['cast']).count()
     actor_return =round(actor_info['return'].sum(),2)
     if  nombre_actor not in actor_info.values:
         return(f"{nombre_actor} no es un nombre válido. Chequea la ortografía y mayúsculas.")
@@ -97,6 +80,17 @@ def votos_titulo(titulo_de_la_filmacion: str):
             'La misma cuenta con una valoración total de': str(movie_info.vote_count.values[0]),
             'con un promedio de': str(movie_info.vote_average.values[0])
         }
+        
+@app.get('/score_titulo/{titulo_de_la_filmacion}')
+def score_titulo(titulo_de_la_filmacion: str):
+    movie_info = db[db['title'] == titulo_de_la_filmacion]
+    if titulo_de_la_filmacion not in movie_info.values:
+        return f"{titulo_de_la_filmacion} no es un título válido. Chequea que el título sea el correcto, la ortografía y mayúsculas."
+    return {
+        'La película':titulo_de_la_filmacion,
+        'fue estrenada en el año': str(movie_info.release_year.values[0]),
+        'con un score/popularidad de': str(movie_info.popularity.values[0])
+    }
 
 @app.get('/get_director/{nombre_director}')
 def get_director(nombre_director):
