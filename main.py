@@ -113,11 +113,12 @@ def get_director(nombre_director):
 
 # RECOMMENDATION FUNCTION 
 
-db['description'] = db['title'] + db['overview'] + db['tagline']
+dbSm=db[db['popularity'] > 4]
+dbSm['description'] = dbSm['title'] + dbSm['overview'] + dbSm['tagline']
 tf = TfidfVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english')
-tfidf_matrix = tf.fit_transform(db['description'])
+tfidf_matrix = tf.fit_transform(dbSm['description'])
 cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-smd = db.reset_index()
+smd = dbSm.reset_index()
 titles = smd['title']
 indices = pd.Series(smd.index, index=smd['title'])
 
