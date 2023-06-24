@@ -103,11 +103,14 @@ def get_director( nombre_director ):
     director_db[['release_year', 'budget', 'revenue']] = director_db[['release_year', 'budget', 'revenue']].astype(int)
     suma_retorno =round(director_db['return'].sum(),2)
     resultado = resultado.sort_values(by='release_year', ascending=True)
+    resultado = resultado.rename(columns={'title': 'Título', 'release_year': 'Año', 'return': 'Retorno', 'budget': 'Costo', 'revenue': 'Ganancia'})
     if  nombre_director not in director_db.values:
         return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
     return {'El retorno total de': nombre_director,
             'es de' : round(suma_retorno, 2),
             'Estas son sus películas, año de lanzamiento, retorno individual, costo y ganancia:': resultado.astype(str)}
+
+
 
 # RECOMMENDATION FUNCTION 
 
