@@ -124,7 +124,24 @@ def get_director( nombre_director ):
 
 # RECOMMENDATION FUNCTION 
 
+db['description'] = db['title'] + db['overview'] + db['tagline']
 
+# Aseguramos que en los datos de las columnas title, overview y tagline no haya valores NaN y sean strings
+db['title'] = db['title'].fillna('').astype('str')
+db['overview'] = db['overview'].fillna('').astype('str')
+db['tagline'] = db['tagline'].fillna('').astype('str')
+
+cv = CountVectorizer(stop_words='english', max_features=5000)
+count_matrix = cv.fit_transform(db['description'])
+
+nn = NearestNeighbors(metric='cosine', algorithm='brute')
+nn.fit(count_matrix)
+
+
+smd = db.reset_index()
+titles = smd['title']
+
+indices = pd.Series(smd.index, index=smd['title'])
 
 @app.get('/get_recommendations/{title}')
 def get_recommendations(title:str):
@@ -146,6 +163,7 @@ def get_recommendations(title:str):
         return {'lista recomendada': db['title'].iloc[movie_indices].tolist()}
 
 # Funcion Machine Learning - "Modelo de Vecinos mas Cercanos"
+@app.get("/movie_recommendation/{movie_title}"])
 def movie_recommendation(movie_title):
     """
     Devuelve una lista de las 5 películas recomendadas basadas en una película dada.
@@ -191,3 +209,9 @@ def movie_recommendation(movie_title):
     recommendations = ML_data.iloc[indices[0][1:]]['title']
 
     return recommendations
+
+
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
