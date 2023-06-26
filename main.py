@@ -126,35 +126,15 @@ def get_director( nombre_director ):
 
 
 
-dbSm['description'] = db['title'] + db['overview'] + db['tagline']
-
-# Aseguramos que en los datos de las columnas title, overview y tagline no haya valores NaN y sean strings
-dbSm['title'] = dbSm['title'].fillna('').astype('str')
-dbSm['overview'] = dbSm['overview'].fillna('').astype('str')
-dbSm['tagline'] = dbSm['tagline'].fillna('').astype('str')
-
-cv = CountVectorizer(stop_words='english', max_features=5000)
-count_matrix = cv.fit_transform(dbSm['description'])
-
-nn = NearestNeighbors(metric='cosine', algorithm='brute')
-nn.fit(count_matrix)
-
-
-smd = dbSm.reset_index()
-titles = smd['title']
-
-indices = pd.Series(smd.index, index=smd['title'])
-
-
 @app.get('/get_recommendations/{title}')
 def get_recommendations(title:str):
        
     # Verificamos si el titulo ingresado se encuentra en el df
-    if title not in dbSm['title'].values:
+    if title not in db['title'].values:
         return 'La pelicula no se encuentra en el conjunto de la base de datos.'
     else:
         # Obtenemos el índice de la película que coincide con el título
-        index = indices[dbSm.title]
+        index = indices[db.title]
 
         # Obtenemos las puntuaciones de similitud de las 5 peliculas más cercanas
         distances, indices_knn = nn.kneighbors(count_matrix[index], n_neighbors=6)  
@@ -163,7 +143,7 @@ def get_recommendations(title:str):
         movie_indices = indices_knn[0][1:]  
 
         # Devolvemos las 5 peliculas mas similares
-        return {'lista recomendada': dbSm['title'].iloc[movie_indices].tolist()}
+        return {'lista recomendada': db['title'].iloc[movie_indices].tolist()}
 
 # Funcion Machine Learning - "Modelo de Vecinos mas Cercanos"
 def movie_recommendation(movie_title):
