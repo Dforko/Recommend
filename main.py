@@ -163,7 +163,7 @@ def get_recommendations(title:str):
         return {'lista recomendada': db['title'].iloc[movie_indices].tolist()}
 
 # Funcion Machine Learning - "Modelo de Vecinos mas Cercanos"
-@app.get("/movie_recommendation/{movie_title}"])
+@app.get("/movie_recommendation/{movie_title}")
 def movie_recommendation(movie_title):
     """
     Devuelve una lista de las 5 películas recomendadas basadas en una película dada.
