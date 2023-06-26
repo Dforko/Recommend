@@ -191,7 +191,7 @@ def movie_recommendation(movie_title):
 
 
 ##MI RECOMMENDATION SYSTEM ##
-db = pd.read_parquet('dbSm.parquet', engine='pyarrow')
+db = pd.read_parquet('db10000.parquet', engine='pyarrow')
 db['description'] = db['title'] + db['overview'] + db['tagline']
 
 tf = TfidfVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english')
