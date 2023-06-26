@@ -189,9 +189,7 @@ def movie_recommendation(movie_title):
 
 
 # Aseguramos que en los datos de las columnas title, overview y tagline no haya valores NaN y sean strings
-db['title'] = db['title'].fillna('').astype('str')
-db['overview'] = db['overview'].fillna('').astype('str')
-db['tagline'] = db['tagline'].fillna('').astype('str')
+
 db['description'] = db[['title', 'overview', 'tagline']].fillna('').apply(lambda x: ' '.join(x), axis=1)
 
 cv = CountVectorizer(stop_words='english', max_features=5000)
