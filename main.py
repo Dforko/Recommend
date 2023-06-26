@@ -230,7 +230,7 @@ def get_recommendations(title:str):
 db['title'] = db['title'].fillna('').astype('str')
 db['overview'] = db['overview'].fillna('').astype('str')
 db['tagline'] = db['tagline'].fillna('').astype('str')
-db['description'] = db['title'] + db['overview'] + db['tagline']
+db['description'] = db[['title', 'overview', 'tagline']].fillna('').apply(lambda x: ' '.join(x), axis=1)
 
 cv = CountVectorizer(stop_words='english', max_features=5000)
 count_matrix = cv.fit_transform(db['description'])
