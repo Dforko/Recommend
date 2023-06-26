@@ -4,7 +4,8 @@ import numpy as np
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
-from sklearn.feature_extraction.text import CountVectorizer 
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
