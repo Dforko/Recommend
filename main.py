@@ -190,35 +190,6 @@ def movie_recommendation(movie_title):
     return recommendations
 
 
-##MI RECOMMENDATION SYSTEM ##
-db = pd.read_parquet('db10000.parquet', engine='pyarrow')
-db['description'] = db['title'] + db['overview'] + db['tagline']
-
-tf = TfidfVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english')
-tfidf_matrix = tf.fit_transform(db['description'])
-
-tfidf_matrix.shape
-cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-
-
-smd = db.reset_index()
-titles = smd['title']
-indices = pd.Series(smd.index, index=smd['title'])
-
-
-@app.get("/get_recommendations/{title}")
-def get_recommendations(title:str):
-    if  title not in titles.values:
-        print(f"{title} no es un título válido. Chequea que el título sea el correcto, la ortografía y mayúsculas.")
-        return 
-    idx = indices[title].min()
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:11]
-    movie_indices = [i[0] for i in sim_scores]
-    return titles.iloc[movie_indices]
-
-
 # Ejecutar la aplicación
 if __name__ == "__main__":
     import uvicorn
