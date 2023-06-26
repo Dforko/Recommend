@@ -8,7 +8,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.neighbors import NearestNeighbors
 
 
-app = FastAPI()
+
+app = FastAPI(title='Moviex: Recomendación System- Machine Learning Operations',
+            description='Diego Forcato ')
 db = None
 @app.on_event('startup')
 async def startup():
@@ -123,7 +125,7 @@ def get_director( nombre_director ):
 # RECOMMENDATION FUNCTION 
 
 
-dbSm=db
+
 dbSm['description'] = db['title'] + db['overview'] + db['tagline']
 
 # Aseguramos que en los datos de las columnas title, overview y tagline no haya valores NaN y sean strings
