@@ -224,12 +224,13 @@ def get_recommendations(title:str):
 
 #OTRO RECOMENDACIÓN 
 
-db['description'] = db['title'] + db['overview'] + db['tagline']
+
 
 # Aseguramos que en los datos de las columnas title, overview y tagline no haya valores NaN y sean strings
 db['title'] = db['title'].fillna('').astype('str')
 db['overview'] = db['overview'].fillna('').astype('str')
 db['tagline'] = db['tagline'].fillna('').astype('str')
+db['description'] = db['title'] + db['overview'] + db['tagline']
 
 cv = CountVectorizer(stop_words='english', max_features=5000)
 count_matrix = cv.fit_transform(db['description'])
