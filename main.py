@@ -2,13 +2,14 @@ from typing import Union
 import pandas as pd
 import numpy as np
 from pydantic import BaseModel
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from sklearn.feature_extraction.text import CountVectorizer 
 from sklearn.neighbors import NearestNeighbors
 
 
 app = FastAPI()
-
+db = None
 @app.on_event('startup')
 async def startup():
     global db
