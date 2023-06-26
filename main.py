@@ -9,7 +9,14 @@ from sklearn.neighbors import NearestNeighbors
 
 app = FastAPI()
 
-db = pd.read_parquet('dbSm.parquet', engine='pyarrow')
+@app.on_event('startup')
+async def startup():
+    global db
+    
+    
+    db = pd.read_parquet('dbSm.parquet', engine='pyarrow')
+
+# db = pd.read_parquet('dbSm.parquet', engine='pyarrow')
 
 @app.get("/")
 def read_root():
@@ -154,3 +161,50 @@ def get_recommendations(title:str):
 
         # Devolvemos las 5 peliculas mas similares
         return {'lista recomendada': dbSm['title'].iloc[movie_indices].tolist()}
+
+# Funcion Machine Learning - "Modelo de Vecinos mas Cercanos"
+def movie_recommendation(movie_title):
+    """
+    Devuelve una lista de las 5 películas recomendadas basadas en una película dada.
+
+    Args:
+        movie_title (str): El título de la película.
+
+    Returns:
+        list: Una lista de los títulos de las películas recomendadas.
+            Si la película no se encuentra en la base de datos, se devuelve el mensaje "La película no se encuentra en la base de datos."
+    """
+    ML_data = db
+
+    # Convertir el título de la película a minúsculas
+    movie_title = movie_title.lower()
+
+    # Buscar la película por título en la columna 'title'
+    movie = ML_data[ML_data['title'].str.lower() == movie_title]
+
+    if len(movie) == 0:
+        return "La película no se encuentra en la base de datos."
+
+    # Obtener el género y la popularidad de la película
+    movie_genre = movie['genres'].values[0]
+    movie_popularity = movie['popularity'].values[0]
+
+    # Crear una matriz de características para el modelo de vecinos más cercanos
+    features = ML_data[['popularity']]
+    genres = ML_data['genres'].str.get_dummies(sep=' ')
+    features = pd.concat([features, genres], axis=1)
+
+    # Manejar valores faltantes (NaN) reemplazándolos por ceros
+    features = features.fillna(0)
+
+    # Crear el modelo de vecinos más cercanos
+    nn_model = NearestNeighbors(n_neighbors=6, metric='euclidean')
+    nn_model.fit(features)
+
+    # Encontrar las películas más similares
+    _, indices = nn_model.kneighbors([[movie_popularity] + [0] * len(genres.columns)], n_neighbors=6)
+
+    # Obtener los títulos de las películas recomendadas
+    recommendations = ML_data.iloc[indices[0][1:]]['title']
+
+    return recommendations
