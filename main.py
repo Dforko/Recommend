@@ -12,10 +12,12 @@ from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
 import warnings; warnings.simplefilter('ignore')
 
-
+# Creamos una instancia de la aplicación FastAPI
 
 app = FastAPI(title='Moviex: Recomendación System- Machine Learning Operations',
-            description='Diego Forcato ')
+            description='Diego Forcato')
+
+# Especificamos los campos y sus tipos de datos correspondientes que se esperan en los objetos Item.
 
 class Item(BaseModel):
     title: str
@@ -25,7 +27,7 @@ class Item(BaseModel):
     budget: int
     revenue: int
 
-
+# Inicializamos la  variable global "db" antes de que la aplicación FastAPI se inicie y establecemos conexión con la base de datos.
 db = None
 @app.on_event('startup')
 async def startup():
@@ -34,7 +36,7 @@ async def startup():
     
     db = pd.read_parquet('db10000.parquet', engine='pyarrow')
 
-# db = pd.read_parquet('dbSm.parquet', engine='pyarrow')
+# Comenzamos a codear las funciones requeridas
 
 @app.get("/")
 def read_root():
@@ -42,7 +44,7 @@ def read_root():
 
 
 
-
+# Endpoint para obtener la cantidad de películas estrenadas en un día ingresado.
 
 @app.get('/cantidad_filmaciones_dia/{Dia}')
 def cantidad_filmaciones_dia(Dia:str):
@@ -59,23 +61,26 @@ def cantidad_filmaciones_dia(Dia:str):
     # Filtramos los duplicados del dataframe y calculamos
     lista_peliculas_day = db[db['release_date'].dt.day_name() == day]
     respuesta = lista_peliculas_day.shape[0]
+     # Verificar si el valor del día es válido
     if Dia not in days:
-        return f"{Dia} no es un día válido."
+        return f"{Dia} no es un día válido. Chequea la ortografía y mayúscula."
     return {
         'La cantidad de': respuesta,
         'películas fueron estrenadas en los días': Dia    }
 
-
+# Endpoint para obtener la cantidad de películas estrenadas en el mes ingresado.
 
 @app.get('/cantidad_filmaciones_mes/{Mes}')
 def cantidad_filmaciones(Mes:str):
+    # Creamos diccionario para obtener el mes en número
     m_dic = {
         'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4, 'Mayo': 5, 'Junio': 6,
         'Julio': 7, 'Agosto': 8, 'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12
     }
     nro_mes = m_dic.get(Mes)
+     # Verificamos si el valor del mes es válido
     if nro_mes is None:
-        return {"error": f"{Mes} is not a valid month."}
+        return {"error": f"{Mes} no es un mes válido. Chequea la ortografía y mayúscula."}
     count = sum(1 for date in db['release_date'] if date.month == nro_mes)
     return {
         'Fueron estrenadas la cantidad de': count,
@@ -86,8 +91,10 @@ def cantidad_filmaciones(Mes:str):
 @app.get('/votos_titulo/{titulo_de_la_filmacion}')
 def votos_titulo(titulo_de_la_filmacion: str):
     movie_info = db[db['title'] == titulo_de_la_filmacion]
+     # Verificamos si el título de la película es válido
     if titulo_de_la_filmacion not in movie_info.values:
         return f"{titulo_de_la_filmacion} no es un título válido. Chequea que el título sea el correcto, la ortografía y mayúsculas."
+   # Verificamos que la pelicula ingresada posea suficientes valoraciones
     if movie_info.vote_count.values[0] < 2000:
         return f"{titulo_de_la_filmacion} no posee suficientes valoraciones."
     else:
@@ -101,6 +108,7 @@ def votos_titulo(titulo_de_la_filmacion: str):
 @app.get('/score_titulo/{titulo_de_la_filmacion}')
 def score_titulo(titulo_de_la_filmacion: str):
     movie_info = db[db['title'] == titulo_de_la_filmacion]
+    # Verificamos si el título de la película es válido
     if titulo_de_la_filmacion not in movie_info.values:
         return f"{titulo_de_la_filmacion} no es un título válido. Chequea que el título sea el correcto, la ortografía y mayúsculas."
     return {
@@ -114,6 +122,7 @@ def get_actor( nombre_actor ):
     actor_info = db[(db['cast'].str.contains(nombre_actor))]
     actor_cant_movies=actor_info['cast'].shape[0]
     actor_return =round(actor_info['return'].sum(),2)
+    # Verificamos si el nombre del actor/la actriz es válido
     if  nombre_actor not in actor_info.values:
         return(f"{nombre_actor} no es un nombre válido. Chequea la ortografía y mayúsculas.")
     return {'El actor/la actriz': nombre_actor, 
@@ -128,7 +137,9 @@ def get_director( nombre_director ):
     director_db[['release_year', 'budget', 'revenue']] = director_db[['release_year', 'budget', 'revenue']].astype(int)
     suma_retorno =round(director_db['return'].sum(),2)
     resultado = resultado.sort_values(by='release_year', ascending=True)
+    # Cambiamos los nombres de las columnas a español 
     resultado = resultado.rename(columns={'title': 'Título', 'release_year': 'Año', 'return': 'Retorno', 'budget': 'Costo', 'revenue': 'Ganancia'})
+     # Verificamos si el nombre del director/a es válido
     if  nombre_director not in director_db.values:
         return(f"{nombre_director} no es un nombre válido. Chequea la ortografía y mayúsculas.")
     return {'El retorno total de': nombre_director,
@@ -141,56 +152,41 @@ def get_director( nombre_director ):
 
 
 
-# Funcion Machine Learning - "Modelo de Vecinos mas Cercanos"
-@app.get("/movie_recommendation/{movie_title}")
-def movie_recommendation(movie_title):
-    """
-    Devuelve una lista de las 5 películas recomendadas basadas en una película dada.
+# Funcion Machine Learning - "Modelo de Vecinos mas Cercanos" 
+# Devuelve las 5 películas recomendadas basadas en la película que ingresamos como input .
+@app.get("/get_recommendation/{movie_title}")
+def get_recommendation(movie_title):
 
-    Args:
-        movie_title (str): El título de la película.
-
-    Returns:
-        list: Una lista de los títulos de las películas recomendadas.
-            Si la película no se encuentra en la base de datos, se devuelve el mensaje "La película no se encuentra en la base de datos."
-    """
-    ML_data = db
-
-    # Convertir el título de la película a minúsculas
+    # Convertimos el título de la película a minúsculas
     movie_title = movie_title.lower()
 
-    # Buscar la película por título en la columna 'title'
-    movie = ML_data[ML_data['title'].str.lower() == movie_title]
+    # Buscamos la película por título en la columna 'title'
+    movie = db[db['title'].str.lower() == movie_title]
 
     if len(movie) == 0:
-        return "La película no se encuentra en la base de datos."
+        return f"{movie_title} no es un nombre válido. Chequea la ortografía y mayúsculas."
 
-    # Obtener el género y la popularidad de la película
-    movie_genre = movie['genres'].values[0]
-    movie_popularity = movie['popularity'].values[0]
+    # Obtenemos  género y  popularidad de la película
+    genre = movie['genres'].values[0]
+    popularity = movie['popularity'].values[0]
 
-    # Crear una matriz de características para el modelo de vecinos más cercanos
-    features = ML_data[['popularity']]
-    genres = ML_data['genres'].str.get_dummies(sep=' ')
+    # Creamos una matriz de para el modelo K-NN
+    features = db[['popularity']]
+    genres = db['genres'].str.get_dummies(sep=' ')
     features = pd.concat([features, genres], axis=1)
 
-    # Manejar valores faltantes (NaN) reemplazándolos por ceros
-    features = features.fillna(0)
-
-    # Crear el modelo de vecinos más cercanos
+    # Creamos el modelo modelo K-NN
     nn_model = NearestNeighbors(n_neighbors=6, metric='euclidean')
     nn_model.fit(features)
 
-    # Encontrar las películas más similares
-    _, indices = nn_model.kneighbors([[movie_popularity] + [0] * len(genres.columns)], n_neighbors=6)
+    # Devuelve las películas más similares
+    _, indices = nn_model.kneighbors([[popularity] + [0] * len(genres.columns)], n_neighbors=6)
 
-    # Obtener los títulos de las películas recomendadas
-    recommendations = ML_data.iloc[indices[0][1:]]['title']
-
-    return recommendations
+    # Retornamos los títulos de las películas recomendadas
+    return db.iloc[indices[0][1:]]['title']
 
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=800
